@@ -14,6 +14,7 @@
 #
 # Copyright 2015-2017 by Claus Hunsen <hunsen@fim.uni-passau.de>
 # Copyright 2020-2022 by Thomas Bock <bockthom@cs.uni-saarland.de>
+# Copyright 2025 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
 # All Rights Reserved.
 """
 This file is able to disambiguate authors after the extraction from the Codeface database was performed. A manually
@@ -186,6 +187,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
                 if is_github_noreply_author(event[9], event[10]) and event[8] == commit_added_event:
                     # extract commit hash from event info 1
                     commit_hash = event[12]
+                    # extract author name from event info 2 while cutting excess '"'
                     name = event[13][1:-1]
                     # extract commit author from commit data, if available
                     if commit_hash in commit_hash_to_author:

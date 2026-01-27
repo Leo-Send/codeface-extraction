@@ -18,7 +18,7 @@
 # Copyright 2018-2019 by Anselm Fehnker <fehnker@fim.uni-passau.de>
 # Copyright 2019 by Thomas Bock <bockthom@fim.uni-passau.de>
 # Copyright 2020-2021 by Thomas Bock <bockthom@cs.uni-saarland.de>
-# Copyright 2025 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
+# Copyright 2025-2026 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
 # All Rights Reserved.
 """
 This file is able to extract Github issue data from json files.
@@ -53,6 +53,9 @@ known_resolutions = {"unresolved", "fixed", "wontfix", "duplicate", "invalid", "
 
 # datetime format string
 datetime_format = "%Y-%m-%d %H:%M:%S"
+
+# Copilot username to be assigned in specific copilot events
+copilot_username = "Copilot"
 
 def run():
     # get all needed paths and arguments for the method call.
@@ -487,6 +490,12 @@ def merge_issue_events(issue_data, external_connected_events):
             # if event is a review request, we can update the ref target with the requested reviewer
             if event["event"] == "review_requested" or event["event"] == "review_request_removed":
                 event["ref_target"] = event["requestedReviewer"]
+
+            # if event is a specific copilot event, assign the copilot user data
+            if event["event"] == "copilot_work_started" or event["event"] == "copilot_work_finished":
+                event["user"]["name"] = None
+                event["user"]["username"] = copilot_username
+                event["user"]["email"] = ""
 
             # if event dismisses a review, we can determine the original state of the corresponding review
             if event["event"] == "review_dismissed":

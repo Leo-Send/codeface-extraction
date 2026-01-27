@@ -15,6 +15,7 @@
 # Copyright 2015-2017 by Claus Hunsen <hunsen@fim.uni-passau.de>
 # Copyright 2020-2022 by Thomas Bock <bockthom@cs.uni-saarland.de>
 # Copyright 2025 by Maximilian Löffler <s8maloef@stud.uni-saarland.de>
+# Copyright 2025-2026 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
 # All Rights Reserved.
 """
 This file is able to disambiguate authors after the extraction from the Codeface database was performed. A manually
@@ -52,6 +53,16 @@ from csv_writer import csv_writer
 log = getLogger(__name__)
 
 ##
+# GLOBAL VARIABLES
+##
+
+# global variable containing all known copilot users and the name and mail adress copilot users will be assigned
+known_copilot_users = {"Copilot", "copilot-pull-request-reviewer[bot]", "copilot-swe-agentbot"}
+copilot_unified_name = "Copilot"
+copilot_unified_email = "copilot@example.com"
+
+
+##
 # RUN POSTPROCESSING
 ##
 
@@ -79,7 +90,7 @@ def perform_data_backup(results_path, results_path_backup):
                     copy(current_file, backup_file)
 
 
-def fix_github_browser_commits(data_path, issues_github_list, commits_list, authors_list, emails_list, bots_list):
+def fix_github_browser_commits(data_path, issues_github_list, commits_list, authors_list, emails_list, bots_list, unify_copilot_users=True):
     """
     Replace the author "GitHub <noreply@github.com>" in both commit and GitHub issue data by the correct author.
     The author "GitHub <noreply@github.com>" is automatically inserted as the committer of a commit that is made when
@@ -90,7 +101,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
     "GitHub <noreply@github.com>" are removed. Also "mentioned" or "subscribed" events in the GitHub issue data which
     reference the author "GitHub <noreply@github.com>" are removed from the GitHub issue data. In addition, remove the
     author "GitHub <noreply@github.com>" also from the author data and bot data and remove e-mails that have been sent
-    by this author.
+    by this author. This method also unifies all known copilot users into a single user if desired.
 
     :param data_path: the path to the project data that is to be fixed
     :param issues_github_list: file name of the github issue data
@@ -98,6 +109,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
     :param authors_list: file name of the corresponding author data
     :param emails_list: file name of the corresponding email data
     :param bots_list: file name of the corresponding bot data
+    :param unify_copilot_users: whether to unify known copilot users into a single user
     """
     github_user = "GitHub"
     github_email = "noreply@github.com"
@@ -179,7 +191,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
             commit_data_file = path.join(data_path, commits_list)
             commit_data = csv_writer.read_from_csv(commit_data_file)
             commit_hash_to_author = {commit[7]: commit[2:4] for commit in commit_data}
-
+            author_name_to_data = {author[1]: author[1:3] for author in author_data_new}
             issue_data_new = []
 
             for event in issue_data:
@@ -187,11 +199,15 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
                 if is_github_noreply_author(event[9], event[10]) and event[8] == commit_added_event:
                     # extract commit hash from event info 1
                     commit_hash = event[12]
-
+                    name = event[13][1:-1]
                     # extract commit author from commit data, if available
                     if commit_hash in commit_hash_to_author:
                         event[9] = commit_hash_to_author[commit_hash][0]
                         event[10] = commit_hash_to_author[commit_hash][1]
+                        issue_data_new.append(event)
+                    elif name in author_name_to_data:
+                        event[9] = author_name_to_data[name][0]
+                        event[10] = author_name_to_data[name][1]
                         issue_data_new.append(event)
                     else:
                         # the added commit is not part of the commit data. In most cases, this is due to merge commits

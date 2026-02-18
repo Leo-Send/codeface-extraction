@@ -52,9 +52,9 @@ from csv_writer import csv_writer
 
 from github_user_utils import known_copilot_users, copilot_unified_name, copilot_unified_email, \
                               is_github_noreply_author, github_user, github_email, \
-                              commit_added_event, mentioned_event, subscribed_event
+                              commit_added_event, mentioned_event, subscribed_event, generate_botname_variants
 
-
+known_copilot_users_extended = generate_botname_variants(known_copilot_users)
 ##
 # RUN POSTPROCESSING
 ##
@@ -122,7 +122,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
                 # keep author entry only if it should not be removed
                 if not is_github_noreply_author(author[1], author[2]):
                     # unify copilot author if desired
-                    if unify_copilot_users and author[1] in known_copilot_users:
+                    if unify_copilot_users and author[1] in known_copilot_users_extended:
                         if not copilot_user_added:
                             author[1] = copilot_unified_name
                             author[2] = copilot_unified_email
@@ -146,7 +146,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
                 # keep author entry only if it should not be removed
                 if not is_github_noreply_author(email[0], email[1]):
                     # unify copilot users if desired
-                    if unify_copilot_users and email[0] in known_copilot_users:
+                    if unify_copilot_users and email[0] in known_copilot_users_extended:
                         email[0] = copilot_unified_name
                         email[1] = copilot_unified_email
                     email_data_new.append(email)
@@ -170,7 +170,7 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
                     commit[5] = commit[2]
                     commit[6] = commit[3]
                 # unify copilot author if desired
-                if unify_copilot_users and commit[5] in known_copilot_users:
+                if unify_copilot_users and commit[5] in known_copilot_users_extended:
                     commit[5] = copilot_unified_name
                     commit[6] = copilot_unified_email
 
@@ -194,13 +194,13 @@ def fix_github_browser_commits(data_path, issues_github_list, commits_list, auth
 
             for event in issue_data:
                 # unify events to use a single copilot user for all events triggered by a known copilot user
-                if unify_copilot_users and event[9] in known_copilot_users:
+                if unify_copilot_users and event[9] in known_copilot_users_extended:
                     event[9] = copilot_unified_name
                     event[10] = copilot_unified_email
-                    if event[8] == commit_added_event and event[13][-1:1] in known_copilot_users:
+                    if event[8] == commit_added_event and event[13][-1:1] in known_copilot_users_extended:
                         # for commit added events, also unify the referenced author in event info 2 if it is a known copilot user
                         event[13] = '"' + copilot_unified_name + '"'
-                    elif event[8] in (mentioned_event, subscribed_event) and event[12][-1:1] in known_copilot_users:
+                    elif event[8] in (mentioned_event, subscribed_event) and event[12][-1:1] in known_copilot_users_extended:
                         # for mentioned/subscribed events, also unify the referenced user in event info 1 and 2 if it is a known copilot user
                         event[12] = '"' + copilot_unified_name + '"'
                         event[13] = '"' + copilot_unified_email + '"'

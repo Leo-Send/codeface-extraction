@@ -30,7 +30,7 @@ from codeface.cli import log
 from codeface.configuration import Configuration
 
 from csv_writer import csv_writer
-from github_user_utils import known_copilot_users, generate_botname_variants
+from github_user_utils.github_user_utils import known_copilot_users, generate_botname_variants
 
 def run():
     # get all needed paths and arguments for the method call.

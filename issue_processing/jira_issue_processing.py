@@ -18,7 +18,7 @@
 # Copyright 2018-2019 by Anselm Fehnker <fehnker@fim.uni-passau.de>
 # Copyright 2020-2021 by Thomas Bock <bockthom@cs.uni-saarland.de>
 # Copyright 2023 by Maximilian Löffler <s8maloef@stud.uni-saarland.de>
-# Copyright 2025 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
+# Copyright 2025-2026 by Leo Sendelbach <s8lesend@stud.uni-saarland.de>
 # All Rights Reserved.
 """
 This file is able to extract Jira issue data from xml files.
@@ -476,6 +476,7 @@ def load_issues_via_api(issues, persons, url, referenced_bys):
                         history = dict()
                         history["event"] = "state_updated"
                         history["event_info_1"] = new_state
+                        history["event_info_2"] = ""
                         if hasattr(change, "author"):
                             user = create_user(change.author.displayName, change.author.name, "")
                         else:
